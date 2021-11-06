@@ -29,68 +29,52 @@ export function toggle(matrix, {x, y}) {
   return resurrect(matrix, { x, y })
 }
 
-function countAliveNeightbours(matrix, {x, y}) {
-  let aliveNeightbours = 0
-  if (x > 0) {
-    // NW
-    if (y > 0 && matrix[x - 1][y - 1] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-    // W 
-    if (matrix[x - 1][y] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-    // SW
-    if (y < matrix[x].length - 1 && matrix[x - 1][y + 1] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-  }
-  // S
-  if (y < matrix[x].length - 1 && matrix[x][y + 1] === status.ALIVE) {
-    aliveNeightbours = aliveNeightbours + 1
-  }
-  if (x < matrix.length - 1) {
-    // SE
-    if (y < matrix[x].length - 1 && matrix[x + 1][y + 1] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-    // E
-    if (matrix[x + 1][y] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-    // NE
-    if (y > 0 && matrix[x + 1][y - 1] === status.ALIVE) {
-      aliveNeightbours = aliveNeightbours + 1
-    }
-  }
-  // N
-  if (y > 0 && matrix[x][y - 1] === status.ALIVE) {
-    aliveNeightbours = aliveNeightbours + 1
-  }
-
-  return aliveNeightbours
+function countAliveNeighbours(matrix, {x, y}) {
+	function checkNeighbour(offsetX, offsetY) {
+		const xNeighbour = (x + matrix.length + offsetX) % matrix.length
+		const yNeighbour = (y + matrix[x].length + offsetY) % matrix[x].length
+		return matrix[xNeighbour][yNeighbour] === status.ALIVE ? 1 : 0
+	}
+	return (
+		// NW
+		checkNeighbour(-1, -1) +
+		// N
+		checkNeighbour(0, -1) +
+		// NE
+		checkNeighbour(1, -1) +
+		// E
+		checkNeighbour(1, 0) +
+		// SE
+		checkNeighbour(1, 1) +
+		// S
+		checkNeighbour(0, 1) +
+		// SW
+		checkNeighbour(-1, 1) +
+		// W
+		checkNeighbour(-1, 0)
+	)
 }
 
-function shouldDie(aliveNeightbours) {
+function shouldDie(aliveNeighbours) {
   // underpopulation (< 2)
-  return aliveNeightbours < 2 ||
+  return aliveNeighbours < 2 ||
     // overpopulation (> 3)
-    aliveNeightbours > 3
+    aliveNeighbours > 3
 }
 
-function shouldResurrect(aliveNeightbours) {
+function shouldResurrect(aliveNeighbours) {
   // reproduction (3)
-  return aliveNeightbours === 3
+  return aliveNeighbours === 3
 }
 
 export function tick(matrix) {
   return matrix.map((currentRow, x) =>
     currentRow.map((value, y) => {
-      const aliveNeightbours = countAliveNeightbours(matrix, {x, y})
-      if (shouldDie(aliveNeightbours)) {
+      const aliveNeighbours = countAliveNeighbours(matrix, {x, y})
+      if (shouldDie(aliveNeighbours)) {
         return status.DIED;
       }
-      if (shouldResurrect(aliveNeightbours)) {
+      if (shouldResurrect(aliveNeighbours)) {
         return status.ALIVE;
       }
       return value;
